@@ -57,11 +57,11 @@ class ServerMessaging {
                 Request.Method.POST, url, conversationsJSON,
                 Response.Listener {
                     response ->
-                    Log.d("HttpResponse:ConversationList", "$response")
+                    Log.d("HttpResponse", "$response")
                 },
                 Response.ErrorListener {
                     error ->
-                    Log.d("HttpError:ConversationList", "$error")
+                    Log.d("HttpError", "$error")
                 }
             )
 
@@ -75,7 +75,6 @@ class ServerMessaging {
                 Log.d("Error", "No internet permission")
             }
             val queue = Volley.newRequestQueue(context)
-//        val url = "http://www.google.com"
 
             Log.d("HttpRequest", "Sending request...")
             val stringRequest = StringRequest(

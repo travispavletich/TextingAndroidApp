@@ -6,11 +6,13 @@ import android.content.pm.PackageManager
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 
-class PermissionHandler {
+class PermissionHandler
+{
     companion object {
         const val ACCESS_INTERNET_REQUEST = 1
         const val SEND_SMS_REQUEST = 1
         const val READ_SMS_REQUEST = 1
+        const val RECEIVE_SMS_REQUEST = 1
         const val RECEIVE_MMS_REQUEST = 1
 
         fun requestInternetPermission(activity: Activity) {
@@ -46,6 +48,18 @@ class PermissionHandler {
 
                 activity.requestPermissions(Array(1) { android.Manifest.permission.READ_SMS },
                     READ_SMS_REQUEST)
+            }
+        }
+
+        fun requestPermissionToReceiveSMS(activity: Activity) {
+            if (ContextCompat.checkSelfPermission(activity, android.Manifest.permission.RECEIVE_SMS)
+                != PackageManager.PERMISSION_GRANTED) {
+                if (activity.shouldShowRequestPermissionRationale(android.Manifest.permission.RECEIVE_SMS)) {
+                    Toast.makeText(activity, "Please allow permission", Toast.LENGTH_SHORT).show()
+                }
+
+                activity.requestPermissions(Array(1) { android.Manifest.permission.RECEIVE_SMS },
+                    RECEIVE_SMS_REQUEST)
             }
         }
 

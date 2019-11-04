@@ -13,6 +13,14 @@ class MessageHandler {
         var settings = com.klinker.android.send_message.Settings()
 
         fun sendMessage(context: Context, recipients: Array<String>, messageText: String) {
+            var recipientsString = ""
+
+            for (rec in recipients) {
+                recipientsString += "$recipients "
+            }
+
+            Log.d("SendMessage", "$messageText $recipientsString")
+
             settings.useSystemSending = true
             var transaction = Transaction(context, settings)
 

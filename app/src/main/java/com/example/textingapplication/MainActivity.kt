@@ -4,6 +4,9 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import com.google.android.gms.tasks.OnCompleteListener
+import com.google.firebase.FirebaseApp
+import com.google.firebase.iid.FirebaseInstanceId
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -12,12 +15,14 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        var x = 0
+        FirebaseApp.initializeApp(this)
 
-//        counterButton.setOnClickListener {
-//            x++
-//            counterText.setText("Counter: " + x)
-//        }
+        FirebaseInstanceId.getInstance().instanceId.addOnCompleteListener(OnCompleteListener {
+            task ->
+            val token = task.result!!.token
+
+            TextingAppService.TOKEN = token
+        })
 
         submitIPButton.setOnClickListener {
             Intent(this, TextingAppService::class.java).also { intent ->
@@ -27,10 +32,16 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        Intent(this, SmsListener::class.java).also {
+            Log.d("Intent", "start SMS Listener")
+            startService(it)
+        }
+
         PermissionHandler.requestInternetPermission(this)
         PermissionHandler.requestPermissionToSendSMS(this)
         PermissionHandler.requestPermissionToReadSMS(this)
         PermissionHandler.requestPermissionToReadMMS(this)
+        PermissionHandler.requestPermissionToReceiveSMS(this)
 
     }
 }
