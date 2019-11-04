@@ -116,7 +116,6 @@ class MessageHandler {
             return messageList
         }
 
-        // TODO: Make this return a message object rather than a String
         private fun getSMSMessageData(id: Int, context: Context): com.example.textingapplication.Message? {
             val selection = "_id=$id"
 

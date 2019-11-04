@@ -1,19 +1,15 @@
 package com.example.textingapplication
 
-import android.app.Service
-import android.content.Intent
-import android.os.IBinder
 import android.util.Log
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
-import com.google.gson.Gson
 import org.json.JSONArray
-import org.json.JSONObject
 
 class FirebaseRequestService : FirebaseMessagingService() {
     companion object {
         val SEND_MESSAGE_STRING = "SendMessage"
         val RETRIEVE_CONVERSATIONS_STRING = "RetrieveConversations"
+        val RETRIEVE_MESSAGES_STRING = "RetrieveMessageList"
     }
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
@@ -26,6 +22,10 @@ class FirebaseRequestService : FirebaseMessagingService() {
                 handleSendMessage(remoteMessage.data)
             } else if (notificationType == RETRIEVE_CONVERSATIONS_STRING) {
                 handleRetrieveConversations()
+            } else if (notificationType == RETRIEVE_MESSAGES_STRING) {
+                val conversationIdString = remoteMessage.data.get("ConversationID")
+                val conversationId = conversationIdString?.toInt()
+                handleRetrieveMessages(conversationId ?: 0)
             }
         }
     }
@@ -64,5 +64,9 @@ class FirebaseRequestService : FirebaseMessagingService() {
 
     fun handleRetrieveConversations() {
         ServerMessaging.sendConversationList(this)
+    }
+
+    fun handleRetrieveMessages(conversationId: Int) {
+        ServerMessaging.sendMessagesFromConversation(this, conversationId)
     }
 }

@@ -69,6 +69,32 @@ class ServerMessaging {
             queue.add(conversationListRequest)
         }
 
+        fun sendMessagesFromConversation(context: Context, conversationId: Int) {
+            val url = "$baseUrl/Android/MessageList"
+            val messages = MessageHandler.getMessagesFromConversation(conversationId, context)
+
+            val messageList = MessageList(messages)
+            val gson = Gson()
+
+            val messagesJSONString = gson.toJson(messageList)
+            val messagesJSON = JSONObject(messagesJSONString)
+
+            val messageListRequest = JsonObjectRequest (
+                Request.Method.POST, url, messagesJSON,
+                Response.Listener {
+                    response ->
+                    Log.d("HttpResponse", "$response")
+                },
+                Response.ErrorListener {
+                    error ->
+                    Log.d("HttpError", "$error")
+                }
+            )
+
+            val queue = Volley.newRequestQueue(context)
+            queue.add(messageListRequest)
+        }
+
         fun sendHttpRequest(url: String, context: Context) {
             if (ContextCompat.checkSelfPermission(context, android.Manifest.permission.INTERNET)
                 != PackageManager.PERMISSION_GRANTED) {
