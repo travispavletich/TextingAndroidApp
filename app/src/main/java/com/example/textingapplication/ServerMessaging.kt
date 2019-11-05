@@ -73,7 +73,7 @@ class ServerMessaging {
             val url = "$baseUrl/Android/MessageList"
             val messages = MessageHandler.getMessagesFromConversation(conversationId, context)
 
-            val messageList = MessageList(messages)
+            val messageList = MessageList(messages, conversationId)
             val gson = Gson()
 
             val messagesJSONString = gson.toJson(messageList)
@@ -93,6 +93,30 @@ class ServerMessaging {
 
             val queue = Volley.newRequestQueue(context)
             queue.add(messageListRequest)
+        }
+
+        fun sendNewMessage(context: Context, message: Message) {
+            val url = "$baseUrl/Android/NewMessageReceived"
+
+            val gson = Gson()
+
+            val messageJSONString = gson.toJson(message)
+            val messageJSON = JSONObject(messageJSONString)
+
+            val newMessageRequest = JsonObjectRequest (
+                Request.Method.POST, url, messageJSON,
+                Response.Listener {
+                        response ->
+                    Log.d("HttpResponse", "$response")
+                },
+                Response.ErrorListener {
+                        error ->
+                    Log.d("HttpError", "$error")
+                }
+            )
+
+            val queue = Volley.newRequestQueue(context)
+            queue.add(newMessageRequest)
         }
 
         fun sendHttpRequest(url: String, context: Context) {

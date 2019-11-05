@@ -40,14 +40,18 @@ class SmsListener : BroadcastReceiver() {
                         body += msg.messageBody
                     }
 
-                    val uri = Uri.parse("content://mms-sms/")
-                    val cursor = context?.contentResolver?.query(uri, null , null, null, null)
+//                    val uri = Uri.parse("content://mms-sms/")
+//                    val cursor = context?.contentResolver?.query(uri, null , null, null, null)
+//
+//                    cursor?.use {
+//                        android.provider.Telephony.Sms.DATE
+//                        val person = it.getString(it.getColumnIndex("address"))
+//                        val timestamp = it.getLong(it.getColumnIndex("date"))
+//                    }
 
-                    cursor?.use {
-                        android.provider.Telephony.Sms.DATE
-                        val person = it.getString(it.getColumnIndex("address"))
-                        val timestamp = it.getLong(it.getColumnIndex("date"))
-                    }
+                    val message = Message(sender!!, false, body, 0)
+
+                    ServerMessaging.sendNewMessage(context!!, message)
 
                 } catch (e: Exception) {
                     Log.d("Exception caught", e.message)

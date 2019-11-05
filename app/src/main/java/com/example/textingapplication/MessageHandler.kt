@@ -86,7 +86,7 @@ class MessageHandler {
 
             val cursor = context.contentResolver.query(uri, projection, null, null, null)
 
-            var messageList = ArrayList<com.example.textingapplication.Message>()
+            val messageList = ArrayList<com.example.textingapplication.Message>()
 
             cursor?.use {
                 if (it.moveToFirst()) {

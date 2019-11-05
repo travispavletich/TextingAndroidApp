@@ -9,5 +9,5 @@ class Message (val Sender: String, val IsSender: Boolean, val MessageBody: Strin
     }
 }
 
-class MessageList(val Messages: ArrayList<Message>) {
+class MessageList(val Messages: ArrayList<Message>, val ConversationID: Int) {
 }

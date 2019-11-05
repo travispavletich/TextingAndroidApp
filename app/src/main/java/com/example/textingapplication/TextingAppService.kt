@@ -31,16 +31,16 @@ class TextingAppService : Service() {
         val scheduleTaskExecutor = Executors.newScheduledThreadPool(5)
 
 //        getMessages()
-        val conversations = MessageHandler.getConversations(this)
+//        val conversations = MessageHandler.getConversations(this)
 
         ServerMessaging.sendConversationList(this)
 
 //        getMessagesInConversation(94)
-        val messages = MessageHandler.getMessagesFromConversation(40, this)
-        Log.d("Length", "${messages.size}")
-        for (message in messages) {
-            Log.d("ID:34", "$message")
-        }
+//        val messages = MessageHandler.getMessagesFromConversation(40, this)
+//        Log.d("Length", "${messages.size}")
+//        for (message in messages) {
+//            Log.d("ID:34", "$message")
+//        }
 
         return super.onStartCommand(intent, flags, startId)
     }
