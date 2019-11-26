@@ -50,6 +50,7 @@ class ServerMessaging {
             Log.d("JSON", conversationsJSONString)
 
             val conversationsJSON = JSONObject(conversationsJSONString)
+            conversationsJSON.remove("TimeStampMillis")
 
             Log.d("JSON", conversationsJSON.getString(("Conversations")))
 
@@ -132,7 +133,7 @@ class ServerMessaging {
                 Response.Listener<String> { response ->
                     Log.d("HttpResponse", "Response: $response")
                 },
-                Response.ErrorListener { Log.d("HttpError", "Didn't work") })
+                Response.ErrorListener { error -> Log.d("HttpError", "$error") })
 
             queue.add(stringRequest)
         }
