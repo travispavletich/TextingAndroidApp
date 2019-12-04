@@ -34,6 +34,8 @@ class MessageHandler {
             var message = Message(messageText, recipients)
 
             transaction.sendNewMessage(message, Transaction.NO_THREAD_ID)
+
+
         }
 
         fun getConversations(context: Context): ArrayList<Conversation> {
