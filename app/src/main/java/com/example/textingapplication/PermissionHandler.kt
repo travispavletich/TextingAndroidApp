@@ -14,6 +14,7 @@ class PermissionHandler
         const val READ_SMS_REQUEST = 1
         const val RECEIVE_SMS_REQUEST = 1
         const val RECEIVE_MMS_REQUEST = 1
+        const val READ_CONTACT_REQUEST = 1
 
         fun requestInternetPermission(activity: Activity) {
             if (ContextCompat.checkSelfPermission(activity, android.Manifest.permission.INTERNET)
@@ -72,6 +73,18 @@ class PermissionHandler
 
                 activity.requestPermissions(Array(1) { android.Manifest.permission.RECEIVE_MMS },
                     RECEIVE_MMS_REQUEST)
+            }
+        }
+
+        fun requestPermissionToReadContacts(activity: Activity) {
+            if (ContextCompat.checkSelfPermission(activity, android.Manifest.permission.READ_CONTACTS)
+                != PackageManager.PERMISSION_GRANTED) {
+                if (activity.shouldShowRequestPermissionRationale(android.Manifest.permission.READ_CONTACTS)) {
+                    Toast.makeText(activity, "Please allow permission", Toast.LENGTH_SHORT).show()
+                }
+
+                activity.requestPermissions(Array(1) { android.Manifest.permission.READ_CONTACTS },
+                    READ_CONTACT_REQUEST)
             }
         }
     }

@@ -34,24 +34,38 @@ class SmsListener : BroadcastReceiver() {
                     var body = ""
                     val sender = if (msgs.isNotEmpty()) msgs[0].originatingAddress else ""
 
-                    val time = msgs[0].timestampMillis
+                    val timestamp = msgs[0].timestampMillis
+                    val date = MessageHandler.timestampToDate(timestamp)
 
                     for (msg in msgs) {
                         body += msg.messageBody
                     }
 
-//                    val uri = Uri.parse("content://mms-sms/")
-//                    val cursor = context?.contentResolver?.query(uri, null , null, null, null)
-//
-//                    cursor?.use {
-//                        android.provider.Telephony.Sms.DATE
-//                        val person = it.getString(it.getColumnIndex("address"))
-//                        val timestamp = it.getLong(it.getColumnIndex("date"))
-//                    }
+                    val uri = Uri.parse("content://sms")
+                    val cursor = context?.contentResolver?.query(uri, null , null, null, null)
 
-                    val message = Message(sender!!, false, body, 0)
+                    var conversation_id = 0
 
-                    ServerMessaging.sendNewMessage(context!!, message)
+                    cursor?.use {
+                        if (it.moveToFirst()) {
+                            val person = it.getString(it.getColumnIndex("address"))
+                            val messageTimestamp = it.getLong(it.getColumnIndex("date"))
+                            val convoId = it.getInt(it.getColumnIndex("thread_id"))
+
+//                            if (person == sender && messageTimestamp == timestamp) {
+                            if (person == sender) {
+                                conversation_id = convoId
+                            }
+                        }
+                    }
+
+                    if (sender != null) {
+                        val message = Message(sender, false, body, conversation_id, date, timestamp)
+                        Log.d("NewMessage", "$message")
+                        ServerMessaging.sendNewMessage(context!!, message)
+                    } else {
+                        Log.d("NewMessage", "Sender is null")
+                    }
 
                 } catch (e: Exception) {
                     Log.d("Exception caught", e.message)

@@ -42,6 +42,7 @@ class MainActivity : AppCompatActivity() {
         PermissionHandler.requestPermissionToReadSMS(this)
         PermissionHandler.requestPermissionToReadMMS(this)
         PermissionHandler.requestPermissionToReceiveSMS(this)
+        PermissionHandler.requestPermissionToReadContacts(this)
 
     }
 }

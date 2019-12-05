@@ -1,16 +1,25 @@
 package com.example.textingapplication
 
+import android.content.ContentUris
 import android.content.Context
 import com.klinker.android.send_message.Message
 import com.klinker.android.send_message.Transaction
 import android.net.Uri
+import android.provider.ContactsContract
 import android.provider.Telephony
 import android.util.Log
 import java.lang.Exception
+import java.text.SimpleDateFormat
+import java.time.LocalDateTime
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
+import java.util.*
+import kotlin.collections.ArrayList
 
 class MessageHandler {
     companion object {
         var settings = com.klinker.android.send_message.Settings()
+        val MESSAGE_LIMIT = 150
 
         fun sendMessage(context: Context, recipients: Array<String>, messageText: String) {
             var recipientsString = ""
@@ -27,11 +36,15 @@ class MessageHandler {
             var message = Message(messageText, recipients)
 
             transaction.sendNewMessage(message, Transaction.NO_THREAD_ID)
+
+
         }
 
         fun getConversations(context: Context): ArrayList<Conversation> {
             val projection = Array(1){"*"}
-            val uri = Uri.parse("content://mms-sms/conversations")
+            val uri = Uri.parse("content://mms-sms/conversations?simple=true")
+//            val uri = Telephony.MmsSms.CONTENT_CONVERSATIONS_URI
+//            val uri = Telephony.MmsSms.CONTENT_URI
 
             val cursor = context.contentResolver.query(uri, projection, null, null, null)
 
@@ -42,22 +55,14 @@ class MessageHandler {
             cursor?.use {
                 if (it.moveToFirst()) {
                     do {
-                        val id = it.getInt(it.getColumnIndex(Telephony.MmsSms._ID))
-                        val date = it.getString(it.getColumnIndex("date"))
-                        val convo_id = it.getInt(it.getColumnIndex("thread_id"))
-                        val body = it.getString(it.getColumnIndex("body"))
-                        val ct_t = it.getString(it.getColumnIndex("ct_t"))
-                        val person = it.getString(it.getColumnIndex("address"))
-//                        val recipients = it.getString(it.getColumnIndex("recipients"))
-
-                        Log.d("Person", "$convo_id $person")
-
                         if (col) {
                             for (i in 0..200) {
                                 try {
                                     val columnName = it.getColumnName(i)
                                     if (columnName != null) {
                                         Log.d("Column", columnName)
+                                    } else {
+                                        Log.d("Column", "Empty")
                                     }
                                 } catch (e: Exception) {
 
@@ -65,9 +70,55 @@ class MessageHandler {
                             }
                             col = false
                         }
+//                        val id = it.getInt(it.getColumnIndex(Telephony.MmsSms._ID))
+                        val timestamp = it.getLong(it.getColumnIndex("date"))
+//                        val convo_id = it.getInt(it.getColumnIndex("thread_id"))
+                        val convo_id = it.getInt(it.getColumnIndex("_id"))
+//                        val body = it.getString(it.getColumnIndex("body"))
+                        val body = it.getString(it.getColumnIndex("snippet"))
+//                        val ct_t = it.getString(it.getColumnIndex("ct_t"))
+                        var recipientId = it.getString(it.getColumnIndex("recipient_ids"))
+//                        var person = "4402123045"
+
+                        if (recipientId.contains(" ")) {
+                            continue
+                        }
+
+                        var person = getPhoneNumbertByRecipientId(it.getLong(it.getColumnIndex("recipient_ids")), context)
 
                         if (person != null) {
-                            val conversation = Conversation(convo_id, body ?: "", arrayOf(person))
+                            person = person.replace("+", "")
+                        }
+
+                        val contactUri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI,
+                                    Uri.encode(person))
+
+                        val contactProjection = arrayOf(ContactsContract.PhoneLookup.DISPLAY_NAME)
+
+                        var contactName = ""
+
+                        val contactCursor = context.contentResolver.query(contactUri, contactProjection, null, null, null)
+
+                        contactCursor?.use { contacts ->
+                            if (contacts.moveToFirst()) {
+                                contactName = contacts.getString(0)
+                            }
+                        }
+
+                        val date = timestampToDate(timestamp)
+
+//                        Log.d("Date", date)
+//
+//                        Log.d("Person", "$convo_id $person")
+
+
+                        if (person != null) {
+                            if (contactName == "") {
+                                contactName = person
+                            }
+
+                            val conversation = Conversation(convo_id, body ?: "", arrayOf(person), arrayOf(contactName), timestamp, date)
+                            Log.d("Conversation", "$conversation")
                             conversations.add(conversation)
                         } else {
                             Log.d("Nulls", "$convo_id")
@@ -81,10 +132,11 @@ class MessageHandler {
         }
 
         fun getMessagesFromConversation(conversationId: Int, context: Context): ArrayList<com.example.textingapplication.Message> {
-            val projection = arrayOf("_id", "ct_t")
+            val projection = arrayOf("_id", "ct_t", "date")
             val uri = Uri.parse("content://mms-sms/conversations/$conversationId")
+            val sortOrder = "date DESC"
 
-            val cursor = context.contentResolver.query(uri, projection, null, null, null)
+            val cursor = context.contentResolver.query(uri, projection, null, null, sortOrder)
 
             val messageList = ArrayList<com.example.textingapplication.Message>()
 
@@ -92,7 +144,6 @@ class MessageHandler {
                 if (it.moveToFirst()) {
                     do {
                         val messageId = it.getInt(it.getColumnIndex(Telephony.MmsSms._ID))
-                        val idx = it.getColumnIndex("ct_t")
                         val messageType = it.getString(it.getColumnIndex("ct_t"))
 
                         if ("application/vnd.wap.multipart.related" == messageType) {
@@ -109,7 +160,7 @@ class MessageHandler {
                                 messageList.add(message)
                             }
                         }
-                    } while (it.moveToNext())
+                    } while (it.moveToNext() && it.position < MESSAGE_LIMIT)
                 }
             }
 
@@ -128,13 +179,15 @@ class MessageHandler {
 
                     val phone = it.getString(it.getColumnIndex("address"))
                     val type = it.getInt(it.getColumnIndex("type"))
-                    val date = it.getString(it.getColumnIndex("date"))
+                    val timestamp = it.getLong(it.getColumnIndex("date"))
                     val body = it.getString(it.getColumnIndex("body"))
                     val read = it.getInt(it.getColumnIndex("read"))
 
+                    val date = timestampToDate(timestamp)
+
                     val messageData = "$date $phone $body $read"
 
-                    return Message(phone, type == 2, body, id)
+                    return Message(phone, type == 2, body, id, date, timestamp)
                 }
             }
 
@@ -149,17 +202,21 @@ class MessageHandler {
 
             // Get whether or not the message has been read
             var read = 0
+            var timestamp: Long = 0
             cursor?.use {
                 if (cursor.moveToFirst()) {
                     read = it.getInt(it.getColumnIndex("read"))
+                    timestamp = it.getLong(it.getColumnIndex("date"))
                 }
             }
 
             val body = getMmsText(id, context)
             val phone = getMmsSender(id, context)
 
+            val date = timestampToDate(timestamp)
+
             if (body != null && phone != null) {
-                return Message(phone, false, body, id)
+                return Message(phone, false, body, id, date, timestamp)
             }
 
             return null
@@ -209,6 +266,31 @@ class MessageHandler {
             }
 
             return null
+        }
+
+        private fun getPhoneNumbertByRecipientId(recipientId: Long, context: Context): String? {
+            val uri = ContentUris.withAppendedId(Uri.parse("content://mms-sms/canonical-address"), recipientId)
+            val cursor = context.contentResolver.query(uri, null, null, null, null)
+
+            var phoneNumber: String? = null
+
+            cursor?.use {
+                if (it.moveToFirst()) {
+                    phoneNumber = cursor.getString(0)
+                }
+            }
+
+            return phoneNumber
+        }
+
+        fun timestampToDate(timestamp: Long): String {
+//            val formatter = DateTimeFormatter.ofPattern("", Locale.ENGLISH)
+//            val localDate = LocalDateTime.parse(date, formatter)
+//
+//            val timestamp = localDate.atOffset(ZoneOffset.UTC).toInstant().toEpochMilli()
+
+            val formatter = SimpleDateFormat("MM/dd/yyyy hh:mm:ss", Locale.ENGLISH)
+            return formatter.format(Date(timestamp))
         }
     }
 }

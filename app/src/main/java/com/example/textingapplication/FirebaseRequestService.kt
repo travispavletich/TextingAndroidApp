@@ -1,5 +1,6 @@
 package com.example.textingapplication
 
+import android.provider.SearchRecentSuggestions
 import android.util.Log
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
@@ -60,6 +61,10 @@ class FirebaseRequestService : FirebaseMessagingService() {
         if (messageText != null) {
             MessageHandler.sendMessage(this, recipients, messageText)
         }
+
+        val messageId = message["MessageID"]
+
+        ServerMessaging.sendMessageStatus(this, messageId!!)
     }
 
     fun handleRetrieveConversations() {

@@ -13,6 +13,8 @@ import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.gson.Gson
+import com.google.gson.JsonElement
+import com.google.gson.JsonObject
 import org.json.JSONArray
 import org.json.JSONObject
 import org.json.JSONStringer
@@ -50,6 +52,7 @@ class ServerMessaging {
             Log.d("JSON", conversationsJSONString)
 
             val conversationsJSON = JSONObject(conversationsJSONString)
+            conversationsJSON.remove("TimeStampMillis")
 
             Log.d("JSON", conversationsJSON.getString(("Conversations")))
 
@@ -119,6 +122,26 @@ class ServerMessaging {
             queue.add(newMessageRequest)
         }
 
+        fun sendMessageStatus(context: Context, messageId: String) {
+            val url = "$baseUrl/Android/SentMessageStatus"
+
+            val messageJSONString = " { MessageID: $messageId, Status: \"OK\" }"
+            val messageJSON = JSONObject(messageJSONString)
+
+            val sendMessageRequest = JsonObjectRequest (
+                Request.Method.POST, url, messageJSON,
+                Response.Listener { response ->
+                    Log.d("HttpResponse", "$response")
+                },
+                Response.ErrorListener { error ->
+                    Log.d("HttpError", "$error")
+                }
+            )
+
+            val queue = Volley.newRequestQueue(context)
+            queue.add(sendMessageRequest)
+        }
+
         fun sendHttpRequest(url: String, context: Context) {
             if (ContextCompat.checkSelfPermission(context, android.Manifest.permission.INTERNET)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -132,7 +155,7 @@ class ServerMessaging {
                 Response.Listener<String> { response ->
                     Log.d("HttpResponse", "Response: $response")
                 },
-                Response.ErrorListener { Log.d("HttpError", "Didn't work") })
+                Response.ErrorListener { error -> Log.d("HttpError", "$error") })
 
             queue.add(stringRequest)
         }
