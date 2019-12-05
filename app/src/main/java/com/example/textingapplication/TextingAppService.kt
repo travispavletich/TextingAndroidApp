@@ -33,7 +33,7 @@ class TextingAppService : Service() {
 //        getMessages()
 //        val conversations = MessageHandler.getConversations(this)
 
-        ServerMessaging.sendConversationList(this)
+//        ServerMessaging.sendConversationList(this)
 
 //        getMessagesInConversation(94)
 //        val messages = MessageHandler.getMessagesFromConversation(40, this)

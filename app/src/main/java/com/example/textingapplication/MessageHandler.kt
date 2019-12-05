@@ -19,6 +19,7 @@ import kotlin.collections.ArrayList
 class MessageHandler {
     companion object {
         var settings = com.klinker.android.send_message.Settings()
+        val MESSAGE_LIMIT = 150
 
         fun sendMessage(context: Context, recipients: Array<String>, messageText: String) {
             var recipientsString = ""
@@ -131,10 +132,11 @@ class MessageHandler {
         }
 
         fun getMessagesFromConversation(conversationId: Int, context: Context): ArrayList<com.example.textingapplication.Message> {
-            val projection = arrayOf("_id", "ct_t")
+            val projection = arrayOf("_id", "ct_t", "date")
             val uri = Uri.parse("content://mms-sms/conversations/$conversationId")
+            val sortOrder = "date DESC"
 
-            val cursor = context.contentResolver.query(uri, projection, null, null, null)
+            val cursor = context.contentResolver.query(uri, projection, null, null, sortOrder)
 
             val messageList = ArrayList<com.example.textingapplication.Message>()
 
@@ -158,7 +160,7 @@ class MessageHandler {
                                 messageList.add(message)
                             }
                         }
-                    } while (it.moveToNext())
+                    } while (it.moveToNext() && it.position < MESSAGE_LIMIT)
                 }
             }
 
