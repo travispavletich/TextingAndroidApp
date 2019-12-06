@@ -1,4 +1,4 @@
-# Running the Android App
+# Running the Android App Manually
 
 * Clone the git repo by running
     ```bash
